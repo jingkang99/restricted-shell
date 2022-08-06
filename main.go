@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"time"
 	"bufio"
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -19,6 +20,12 @@ func main() {
 	regx := regexp.MustCompile(allowed)
 	regp := regexp.MustCompile(prohibt)
 
+	f, err := os.CreateTemp(".", "rshell-")
+	if err != nil {
+        	fmt.Fprintln(os.Stderr, err)
+	}
+	defer f.Close()
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("> ")
@@ -26,6 +33,12 @@ func main() {
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
+
+		now := fmt.Sprint(time.Now())
+		if _, err := f.Write( []byte( ( now + "\t" + cmdString) ) ); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+
 		if len(cmdString) < 2 {
 			continue
 		}
@@ -46,6 +59,7 @@ func main() {
 		}
 	}
 }
+
 func runCommand(commandStr string) error {
 	commandStr = strings.TrimSuffix(commandStr, "\n")
 	arrCommandStr := strings.Fields(commandStr)
@@ -60,7 +74,7 @@ func runCommand(commandStr string) error {
 		arrCommandStr = strArr
 	case "plus":
 		if len(arrCommandStr) < 3 {
-			return errors.New("Required for 2 arguments")
+			return errors.New("2 or more arguments required")
 		}
 		arrNum := []int64{}
 		for i, arg := range arrCommandStr {
