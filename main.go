@@ -11,8 +11,8 @@ import (
 	"strings"
 )
 
-var allowed = `\b(?:awk|cat|cd|cp|curl|echo|exit|file|find|grep|head|ls|ldd|locate|more|netstat|ping|ps|pwd|sed|sort|tail|tar|uniq|w|wc|help|plus)\b`
-var helpStr =      `awk cat cd cp curl echo exit file find grep head ls ldd locate more netstat ping ps pwd sed sort tail tar uniq w wc help plus`
+var allowed = `\b(?:awk|cat|cd|cp|curl|echo|exit|file|find|grep|head|ls|ll|ldd|locate|more|netstat|ping|ps|pwd|sed|sort|tail|tar|uniq|w|wc|help|plus)\b`
+var helpStr =      `awk cat cd cp curl echo exit file find grep head ls ll ldd locate more netstat ping ps pwd sed sort tail tar uniq w wc help plus`
 var prohibt = `\s*(?:/proc|/var|/etc|/boot|/dev|/root|/bin|/sbin|/lib|/usr|/sys)\b`
 
 func main() {
@@ -55,6 +55,9 @@ func runCommand(commandStr string) error {
 	case "help":
 		fmt.Fprintln(os.Stdout, "allowed cmd: "+helpStr)
 		return nil
+	case "ll":
+		strArr := []string {"ls", "-l"}
+		arrCommandStr = strArr
 	case "plus":
 		if len(arrCommandStr) < 3 {
 			return errors.New("Required for 2 arguments")
