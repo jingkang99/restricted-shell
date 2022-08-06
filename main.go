@@ -6,19 +6,41 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 )
 
+var allowed = `\b(?:awk|cat|cd|cp|curl|echo|exit|file|find|grep|head|ls|ldd|locate|more|netstat|ping|ps|pwd|sed|sort|tail|tar|uniq|w|wc|help|plus)\b`
+var helpStr =      `awk cat cd cp curl echo exit file find grep head ls ldd locate more netstat ping ps pwd sed sort tail tar uniq w wc help plus`
+var prohibt = `\s*(?:/proc|/var|/etc|/boot|/dev|/root|/bin|/sbin|/lib|/usr|/sys)\b`
+
 func main() {
+	regx := regexp.MustCompile(allowed)
+	regp := regexp.MustCompile(prohibt)
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("$ ")
+		fmt.Print("> ")
 		cmdString, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
-		err = runCommand(cmdString)
+		if len(cmdString) < 2 {
+			continue
+		}
+
+		if regp.MatchString(cmdString) {
+			fmt.Fprintln(os.Stderr, "path not allowed")
+			continue
+		}
+
+		if regx.MatchString(cmdString) {
+			err = runCommand(cmdString)
+		} else {
+			fmt.Fprintln(os.Stderr, strings.TrimSpace(cmdString)+" not allowed")
+		}
+
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
@@ -30,8 +52,10 @@ func runCommand(commandStr string) error {
 	switch arrCommandStr[0] {
 	case "exit":
 		os.Exit(0)
+	case "help":
+		fmt.Fprintln(os.Stdout, "allowed cmd: "+helpStr)
+		return nil
 	case "plus":
-		// Not using `sum` because it's a registered command in unix
 		if len(arrCommandStr) < 3 {
 			return errors.New("Required for 2 arguments")
 		}
@@ -45,7 +69,6 @@ func runCommand(commandStr string) error {
 		}
 		fmt.Fprintln(os.Stdout, sum(arrNum...))
 		return nil
-		// add another case here for custom commands.
 	}
 	cmd := exec.Command(arrCommandStr[0], arrCommandStr[1:]...)
 	cmd.Stderr = os.Stderr
@@ -60,3 +83,5 @@ func sum(numbers ...int64) int64 {
 	}
 	return res
 }
+
+// https://hackernoon.com/today-i-learned-making-a-simple-interactive-shell-application-in-golang-aa83adcb266a
