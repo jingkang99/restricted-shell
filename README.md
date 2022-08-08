@@ -15,3 +15,5 @@ To customize your own shell, modify those variables in main.go and re-compile.
 ```
 go build -trimpath -ldflags '-w -s'
 ```
+
+![image](https://user-images.githubusercontent.com/10793075/183319103-c8657411-cce5-4e48-abc0-f15bb3bbaa30.png)
